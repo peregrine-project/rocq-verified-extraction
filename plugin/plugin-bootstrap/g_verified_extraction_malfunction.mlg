@@ -295,7 +295,9 @@ let compile_malfunction conf pt p =
   let conf = interp_pipeline_config conf in
   let p = FixProgram.fix_quoted_program p in
   let pt = interp_program_type pt in
-  let names, code = Compile_malfunction.compile_malfunction_gen conf pt p in
+  (* The last argument is the erased proof that [p] satisfies the precondition
+     of the pipeline (well-typedness): it holds as the kernel checked [p]. *)
+  let names, code = Compile_malfunction.compile_malfunction_gen conf pt p () in
   (List.map Caml_bytestring.caml_string_of_bytestring names,
   Caml_bytestring.caml_string_of_bytestring code)
 

@@ -30,4 +30,4 @@ type malfunction_pipeline_config = { erasure_config : erasure_configuration ;
 type program_type = Standalone | Shared_lib of t * t
 
 val compile_malfunction_gen : malfunction_pipeline_config -> program_type -> 
-    TemplateProgram.template_program -> t list * t
+    TemplateProgram.template_program -> unit (* erased proof of the pipeline's precondition *) -> t list * t

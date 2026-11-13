@@ -735,11 +735,16 @@ Fixpoint extract_names (t : Ast.term) : list ident :=
   | _ => []
   end.
 
-Axiom trust_coq_kernel : forall conf p, pre (malfunction_front conf) (conf.(reorder_cstrs), p).
-
-Definition compile_malfunction_gen config (pt : program_type) (p : Ast.Env.program) : list string * string := (* Exported names, code *)
+(* The precondition of the pipeline is MetaRocq's precondition for erasure: the
+   template program is well-typed (and the usual normalization assumptions hold).
+   It is not provable for arbitrary [p], so it is a hypothesis here instead of
+   an axiom. The plugin discharges it on the OCaml side: it only quotes terms
+   that the Rocq kernel has already type-checked. Since [pr] is a proof, it is
+   erased by extraction. *)
+Definition compile_malfunction_gen config (pt : program_type) (p : Ast.Env.program)
+  (pr : pre (malfunction_front config) (config.(reorder_cstrs), p)) : list string * string := (* Exported names, code *)
   let nms := extract_names p.2 in
-  let p' := malfunction_pipeline_run config (config.(reorder_cstrs), p) (trust_coq_kernel config p) in
+  let p' := malfunction_pipeline_run config (config.(reorder_cstrs), p) pr in
   let serialize p_c := @to_string _ (Serialize_module config.(prims) pt (rev nms)) p_c in
   let code := time "Pretty printing"%bs serialize p' in
   (nms, code).
@@ -747,5 +752,6 @@ Definition compile_malfunction_gen config (pt : program_type) (p : Ast.Env.progr
 Definition default_malfunction_config : malfunction_pipeline_config :=
   {| erasure_config := safe_erasure_config; reorder_cstrs := []; prims := [] |}.
 
-Definition compile_malfunction p :=
-  (compile_malfunction_gen default_malfunction_config Standalone p).2.
+Definition compile_malfunction (p : Ast.Env.program)
+  (pr : pre (malfunction_front default_malfunction_config) (default_malfunction_config.(reorder_cstrs), p)) :=
+  (compile_malfunction_gen default_malfunction_config Standalone p pr).2.
