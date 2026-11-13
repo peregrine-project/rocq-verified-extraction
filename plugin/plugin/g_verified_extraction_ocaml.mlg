@@ -86,6 +86,9 @@ let interp_program_type = function
 let compile_malfunction conf pt p =
   let conf = interp_pipeline_config conf in
   let pt = interp_program_type pt in
+  (* [compile_malfunction_gen] also takes a proof that [p] satisfies the
+     precondition of the pipeline (well-typedness). It holds as the kernel
+     checked [p]; being a proof, it is erased by extraction. *)
   let names, code = Pipeline.compile_malfunction_gen conf pt p in
   (List.map Caml_bytestring.caml_string_of_bytestring names,
   Caml_bytestring.caml_string_of_bytestring code)
